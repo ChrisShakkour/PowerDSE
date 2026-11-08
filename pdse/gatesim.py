@@ -24,6 +24,8 @@ import subprocess
 import time
 from pathlib import Path
 
+from .vcd import drop_reals
+
 ROOT = Path(__file__).resolve().parents[1]
 CELLS = [ROOT / "cells" / "asap7_lib_comb.v", ROOT / "cells" / "asap7_seq_sim.v"]
 VERILATOR_DIR = os.environ.get("VERILATOR_DIR", str(Path.home() / "miniforge3" / "envs" / "eda" / "bin"))
@@ -105,5 +107,6 @@ echo "PDSE_TB_RC=$?"
         return row | {f"{tag}_status": "build_failed"}
     ok = int(m[1]) == 0 and vcd.exists()
     if ok:
-        vcd.rename(d / "activity.vcd")
+        drop_reals(vcd, d / "activity.vcd")
+        vcd.unlink()
     return row | {f"{tag}_status": "pass" if ok else "fail", f"{tag}_vcd": str(d / "activity.vcd")}

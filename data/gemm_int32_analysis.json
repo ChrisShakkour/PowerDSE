@@ -1,0 +1,88 @@
+{
+ "kernel": "gemm_int32",
+ "points": 192,
+ "statuses": {
+  "pass": 192
+ },
+ "ref_tier": "p1g",
+ "g2": {
+  "valid": 192,
+  "cv_r2_log_power": {
+   "area\u00d7f": 0.9762,
+   "area, flip-flops, cells, f, cycles": 0.9917
+  },
+  "front2d": 15,
+  "front3d": 40,
+  "front3d_off_2d": 25,
+  "front3d_off_2d_frac": 0.625,
+  "off_2d_ids": [
+   "250MHz_u2_m11_po0_df16",
+   "250MHz_u2_mnn2_po0_df0",
+   "250MHz_u2_mnn2_po0_df16",
+   "250MHz_u2_mnn4_po0_df0",
+   "250MHz_u4_mnn2_po0_df0",
+   "250MHz_u4_mnn2_po0_df16",
+   "250MHz_u4_mnn4_po0_df16",
+   "250MHz_u8_mnn2_po0_df16",
+   "250MHz_u8_mnn4_po0_df0",
+   "250MHz_u8_mnn4_po0_df16",
+   "500MHz_u1_mnn2_po0_df0",
+   "500MHz_u1_mnn2_po0_df16",
+   "500MHz_u1_mnn4_po0_df0",
+   "500MHz_u1_mnn4_po0_df16",
+   "500MHz_u2_mnn2_po0_df0",
+   "500MHz_u2_mnn2_po0_df16",
+   "500MHz_u2_mnn4_po0_df0",
+   "500MHz_u2_mnn4_po0_df16",
+   "500MHz_u4_mnn2_po0_df16",
+   "500MHz_u4_mnn4_po0_df0",
+   "500MHz_u8_mnn2_po0_df16",
+   "500MHz_u8_mnn4_po0_df0",
+   "500MHz_u8_mnn4_po0_df16",
+   "750MHz_u1_mnn4_po1_df0",
+   "750MHz_u2_mnn4_po0_df0"
+  ],
+  "iso_lat_area_groups": 192,
+  "iso_lat_area_power_spread_median": 0.33,
+  "iso_lat_area_power_spread_max": 1.545,
+  "energy_uj_range": [
+   0.913829858765104,
+   3.0322307321519935
+  ]
+ },
+ "g3": {
+  "p0": {
+   "n": 192,
+   "pearson": 0.8639,
+   "spearman": 0.869,
+   "kendall": 0.707,
+   "mean_ratio_to_ref": 3.026,
+   "front_jaccard": 0.466,
+   "hv_of_its_front_under_ref": 0.9934,
+   "front_size": 45,
+   "hv_of_2d_front_under_ref": 0.9612
+  },
+  "p1": {
+   "n": 192,
+   "pearson": 0.7249,
+   "spearman": 0.6542,
+   "kendall": 0.4868,
+   "mean_ratio_to_ref": 2.65,
+   "front_jaccard": 0.38,
+   "hv_of_its_front_under_ref": 0.9721,
+   "front_size": 29,
+   "hv_of_2d_front_under_ref": 0.9612
+  },
+  "proxy": {
+   "n": 192,
+   "pearson": 0.9889,
+   "spearman": 0.9881,
+   "kendall": 0.9132,
+   "mean_ratio_to_ref": 1.006,
+   "front_jaccard": 0.775,
+   "hv_of_its_front_under_ref": 0.9971,
+   "front_size": 31,
+   "hv_of_2d_front_under_ref": 0.9612
+  }
+ }
+}

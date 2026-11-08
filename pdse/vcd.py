@@ -62,3 +62,18 @@ def flatten_scopes(src: Path, dst: Path, design_scope: list[str]) -> dict:
             if not raw.startswith(b"r"):
                 o.write(raw)
     return {"vcd_vars_flattened": flattened, "vcd_vars_other": kept}
+
+
+def drop_reals(src: Path, dst: Path) -> None:
+    """Copy a VCD without real-valued variables (OpenSTA's reader fails on them: `stoll`, or "unknown variable")."""
+    with open(src, "rb") as f, open(dst, "wb") as o:
+        header = True
+        for raw in f:
+            if header:
+                if raw.lstrip().startswith(b"$var real"):
+                    continue
+                if raw.lstrip().startswith(b"$enddefinitions"):
+                    header = False
+            elif raw.startswith(b"r"):
+                continue
+            o.write(raw)

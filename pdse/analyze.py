@@ -133,8 +133,31 @@ def g2(space: Space) -> dict:
             "energy_uj_range": [min(energy), max(energy)]}
 
 
+def proxy_rows(rows: dict, ref: str) -> dict:
+    """A free power proxy: the reference power fitted (log-linear, all points) from area and achieved clock only.
+    If steering by this proxy is as good as steering by measured power, power adds nothing beyond area x clock."""
+    sref = Space(rows, ref)
+    ids = sref.valid()
+    X = [[1, math.log(sref.table[i]["area_um2"]), math.log(sref.table[i]["f_eff_mhz"])] for i in ids]
+    w = lstsq(X, [math.log(sref.table[i]["power_w"]) for i in ids])
+    out = {}
+    for pid, r in rows.items():
+        r2 = dict(r)
+        m = sref.table.get(pid)
+        if m:
+            pw = math.exp(w[0] + w[1] * math.log(m["area_um2"]) + w[2] * math.log(m["f_eff_mhz"]))
+            mhz = float(r["mhz"])
+            # store as a tier whose dynamic power at the target clock gives pw at f_eff (see oracle.metrics)
+            r2["proxy_power_dynamic_w"] = pw * mhz / m["f_eff_mhz"]
+            r2["proxy_power_leakage_w"] = 0.0
+        out[pid] = r2
+    return out
+
+
 def g3(rows: dict, ref: str, cheap: list[str]) -> dict:
     out = {}
+    if "proxy" in cheap:
+        rows = proxy_rows(rows, ref)
     sref = Space(rows, ref)
     for t in cheap:
         st = Space(rows, t)
@@ -144,11 +167,14 @@ def g3(rows: dict, ref: str, cheap: list[str]) -> dict:
         fr, ft = set(sref.true_front()), set(st.true_front())
         # what a search guided by tier t would keep, judged by the reference tier
         hv_t_on_ref = sref.hv_coverage(sorted(ft))
+        # the 2-D (latency, area) front alone, judged in 3-D by the reference: what ignoring power keeps
+        hv_2d = sref.hv_coverage(sorted(sref.true_front(("latency_us", "area_um2"))))
         out[t] = {"n": len(ids), "pearson": round(pearson(a, b), 4), "spearman": round(spearman(a, b), 4),
                   "kendall": round(kendall(a, b), 4),
                   "mean_ratio_to_ref": round(statistics.fmean(x / y for x, y in zip(b, a)), 3),
                   "front_jaccard": round(len(fr & ft) / len(fr | ft), 3) if fr | ft else None,
-                  "hv_of_its_front_under_ref": round(hv_t_on_ref, 4)}
+                  "hv_of_its_front_under_ref": round(hv_t_on_ref, 4),
+                  "front_size": len(ft), "hv_of_2d_front_under_ref": round(hv_2d, 4)}
     return out
 
 
@@ -164,7 +190,7 @@ def main() -> None:
         statuses[r.get("status", "?")] = statuses.get(r.get("status", "?"), 0) + 1
     ref = Space(rows, args.ref)
     res = {"kernel": args.kernel, "points": len(rows), "statuses": statuses, "ref_tier": args.ref,
-           "g2": g2(ref), "g3": g3(rows, args.ref, [t for t in ("p0", "p1") if t != args.ref])}
+           "g2": g2(ref), "g3": g3(rows, args.ref, [t for t in ("p0", "p1", "proxy") if t != args.ref])}
 
     exp_path = ROOT / "data" / f"{args.kernel}_{args.ref}_experiment.json"
     if exp_path.exists():
