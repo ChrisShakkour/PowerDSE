@@ -195,14 +195,23 @@ def main() -> None:
     exp_path = ROOT / "data" / f"{args.kernel}_{args.ref}_experiment.json"
     if exp_path.exists():
         exp = json.loads(exp_path.read_text())
+        from .experiment import summarize
+        lat_cap, area_cap = exp["lat_cap_us"], exp["area_cap_um2"]
         groups: dict[str, list[dict]] = {}
-        for name, r in exp["runs"].items():
+        for name, r in exp["runs"].items():  # recompute every run's metrics with the same caps
+            r = r | summarize(ref, r["ids"], area_cap, lat_cap)
             groups.setdefault(name.rsplit("_seed", 1)[0], []).append(r)
         g4 = {}
         for name, rs in groups.items():
             hv = [r["hv_coverage"] for r in rs]
             piso = [r["best_power_iso_lat_w"] for r in rs if r.get("best_power_iso_lat_w")]
+            lat = [r["best_latency_us"] for r in rs if r.get("best_latency_us")]
+            ener = [min((ref.table[i]["energy_uj"] for i in r["ids"] if ref.table[i]), default=None) for r in rs]
             g4[name] = {"runs": len(rs), "hv_median": round(statistics.median(hv), 4),
+                        "hv_iqr": [round(sorted(hv)[len(hv) // 4], 4), round(sorted(hv)[3 * len(hv) // 4], 4)],
+                        "best_latency_us_median": round(statistics.median(lat), 1) if lat else None,
+                        "runs_meeting_latency_cap": sum(1 for r in rs if r.get("best_power_iso_lat_w")),
+                        "min_energy_uj_median": round(statistics.median([e for e in ener if e]), 4),
                         "hv_mean": round(statistics.fmean(hv), 4),
                         "best_power_iso_lat_mw_median": round(statistics.median(piso) * 1e3, 4) if piso else None,
                         "evals_to_90pct_median": statistics.median([r["evals_to_90pct"] or 0 for r in rs]),
